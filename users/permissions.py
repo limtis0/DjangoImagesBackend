@@ -1,4 +1,14 @@
-from typing import List
+import re
+from typing import List, Generator
+
+THUMBNAIL_PERMISSION_PATTERN = re.compile(r'can_get_thumbnail_(\d+)px$')
+
+
+def user_iterate_allowed_thumbnail_sizes(user) -> Generator[int, None, None]:
+    for permission in user.get_all_permissions():
+        match = THUMBNAIL_PERMISSION_PATTERN.search(permission)
+        if match:
+            yield int(match.group(1))
 
 
 # Returns True on successful creation, False if permission already exists

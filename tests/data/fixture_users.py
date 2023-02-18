@@ -3,20 +3,20 @@ from users.apps import PLAN_BASIC, PLAN_PREMIUM, PLAN_ENTERPRISE
 
 
 class Users:
-    basic = {'login': 'basicUser', 'email': 'user@basic.com', 'password': 'password'}
-    premium = {'login': 'premiumUser', 'email': 'user@premium.com', 'password': 'password'}
-    enterprise = {'login': 'enterpriseUser', 'email': 'user@enterprise.com', 'password': 'password'}
+    basic = {'username': 'basicUser', 'email': 'user@basic.com', 'password': 'password'}
+    premium = {'username': 'premiumUser', 'email': 'user@premium.com', 'password': 'password'}
+    enterprise = {'username': 'enterpriseUser', 'email': 'user@enterprise.com', 'password': 'password'}
 
     # Can't be populated in a standard pyTest fixture, because they are loaded before the post_migrate signal,
     # After which the standard user-tiers are loaded
     @staticmethod
     def populate_users():
-        basic = User.objects.create_user(Users.basic['login'], Users.basic['email'], Users.basic['password'])
-        Group.objects.get(name=PLAN_BASIC).user_set.add(basic)
+        basic = User.objects.create_user(Users.basic['username'], Users.basic['email'], Users.basic['password'])
+        basic.groups.add(Group.objects.get(name=PLAN_BASIC))
 
-        premium = User.objects.create_user(Users.premium['login'], Users.premium['email'], Users.premium['password'])
-        Group.objects.get(name=PLAN_PREMIUM).user_set.add(premium)
+        premium = User.objects.create_user(Users.premium['username'], Users.premium['email'], Users.premium['password'])
+        premium.groups.add(Group.objects.get(name=PLAN_PREMIUM))
 
-        enterprise = User.objects.create_user(Users.enterprise['login'], Users.enterprise['email'],
+        enterprise = User.objects.create_user(Users.enterprise['username'], Users.enterprise['email'],
                                               Users.enterprise['password'])
-        Group.objects.get(name=PLAN_ENTERPRISE).user_set.add(enterprise)
+        enterprise.groups.add(Group.objects.get(name=PLAN_ENTERPRISE))

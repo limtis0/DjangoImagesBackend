@@ -1,5 +1,6 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from images.serializers import ImageInputSerializer
 
 
 @api_view(['GET'])
@@ -17,6 +18,9 @@ def API_overview(request):
 def upload_image(request):
     if not request.user.is_authenticated:
         return Response(status=401)
+
+    serializer = ImageInputSerializer(data=request.data, context={'request': request})
+    return serializer.upload()
 
 
 @api_view(['DELETE'])
