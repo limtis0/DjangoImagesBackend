@@ -1,3 +1,6 @@
+from typing import List
+
+
 def create_permission(codename: str, name: str):
     from django.contrib.auth.models import Permission
     from django.contrib.contenttypes.models import ContentType
@@ -16,3 +19,13 @@ def remove_permission(codename: str, name: str):
     from django.contrib.auth.models import Permission
 
     Permission.objects.filter(codename=codename, name=name).delete()
+
+
+def create_group_with_permissions(name: str, permission_codenames: List[str]):
+    from django.contrib.auth.models import Permission, Group
+
+    group, created = Group.objects.get_or_create(name=name)
+    if created:
+        for codename in permission_codenames:
+            permission = Permission.objects.get(codename=codename)
+            group.permissions.add(permission)
