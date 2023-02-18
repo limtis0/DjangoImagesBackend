@@ -32,6 +32,6 @@ def list_images(request, page: int):
 
 
 @api_view(['GET'])
-def find_image(request, name: str):
+def find_images(request, name: str):
     if not request.user.is_authenticated:
         return Response(status=401)
