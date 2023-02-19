@@ -1,12 +1,12 @@
 from django.contrib.auth.models import User
-from tests.data.fixture_users import Users
+from tests.data.temp_users import TempUsers
 from users.permissions import Permissions
 
 
 class TestPermissions:
     def test_user_iterate_allowed_thumbnail_sizes(self):
-        Users.populate_users()
-        premium = User.objects.get(username=Users.premium['username'])
+        TempUsers.populate_users()
+        premium = User.objects.get(username=TempUsers.premium['username'])
         sizes = sorted([size for size in Permissions.iter_allowed_thumbnail_sizes(premium)])
 
         assert len(sizes) == 2, 'Thumbnail sizes are not parsed correctly'

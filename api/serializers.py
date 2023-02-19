@@ -22,11 +22,13 @@ class ImageInputSerializer(serializers.ModelSerializer):
             uuid=shortuuid.uuid()
         )
 
-        output = ImageOutputSerializer(image, context={'api': {f'{image.uuid}': image}})
+        output = ImageOutputSerializer(image, context={ImageOutputSerializer.CONTEXT_IMAGES_KEY: {image.uuid: image}})
         return Response(output.data, status=200)
 
 
 class ImageOutputSerializer(serializers.ModelSerializer):
+    CONTEXT_IMAGES_KEY = 'images'
+
     class Meta:
         model = Image
         fields = ['title', 'uuid']
@@ -35,7 +37,7 @@ class ImageOutputSerializer(serializers.ModelSerializer):
         data = super().to_representation(instance)
 
         # Performance: avoiding queries by using a dictionary of Images passed via context
-        image = self.context['api'][data['uuid']]
+        image = self.context[self.CONTEXT_IMAGES_KEY][data['uuid']]
 
         data['thumbnails'] = image.get_available_thumbnails()
 

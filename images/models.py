@@ -1,3 +1,4 @@
+import shutil
 from typing import Dict
 from django.core.validators import FileExtensionValidator
 from django.db import models
@@ -6,6 +7,7 @@ from hexOceanBackend.settings import STATIC_URL
 from pathlib import Path
 from users.permissions import Permissions
 from PIL import Image as PILImage
+from shutil import rmtree
 
 
 def upload_to(self, _):
@@ -13,9 +15,9 @@ def upload_to(self, _):
 
 
 class Image(models.Model):
+    uuid = models.CharField(max_length=22, primary_key=True)
     title = models.CharField(max_length=128)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    uuid = models.CharField(max_length=22)
     image = models.ImageField(upload_to=upload_to,
                               validators=[FileExtensionValidator(allowed_extensions=['png', 'jpg'])])
 
@@ -61,3 +63,6 @@ class Image(models.Model):
 
         thumbnail = image.resize(new_size)
         thumbnail.save(thumbnail_path)
+
+    def delete_files(self):
+        shutil.rmtree(self.get_directory_path())
