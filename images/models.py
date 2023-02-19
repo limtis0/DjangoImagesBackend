@@ -39,33 +39,34 @@ class Image(models.Model):
     def get_file_extension(self) -> str:
         return self.image.name.split('.')[-1]
 
-    def get_directory_path(self, with_static=True) -> Path:
-        if with_static:
-            return Path(STATIC_URL, self.user.username, self.uuid)
-        return Path(self.user.username, self.uuid)
+    def get_directory_path(self) -> Path:
+        return Path(STATIC_URL, self.user.username, self.uuid)
 
-    def get_file_path(self, with_static=True, extension=None) -> Path:
+    def get_file_path(self, extension=None) -> Path:
         # Performance: str.split() may be called multiple times
         if extension is None:
             extension = self.get_file_extension()
-        return self.get_directory_path(with_static).joinpath(Path(f'{self.private_uuid}.{extension}'))
+        return self.get_directory_path().joinpath(Path(f'{self.private_uuid}.{extension}'))
 
-    def get_thumbnail_file_path(self, size: int, with_static=True, extension=None) -> Path:
+    def get_thumbnail_file_path(self, thumbnail_size: int, extension=None) -> Path:
         # Performance: str.split() may be called multiple times
         if extension is None:
             extension = self.get_file_extension()
-        return self.get_directory_path(with_static).joinpath(Path(f'thumbnail_{size}.{extension}'))
+
+        thumbnail_path = self.get_directory_path().joinpath(Path(f'thumbnail_{thumbnail_size}.{extension}'))
+
+        if not thumbnail_path.exists():
+            original_path = self.get_file_path(extension=extension)
+            self.create_thumbnail(original_path, thumbnail_path, thumbnail_size)
+
+        return thumbnail_path
 
     def get_available_thumbnails(self) -> Dict[str, str]:
         extension = self.get_file_extension()
-        original_path = self.get_file_path(extension=extension)
+
         thumbnails = {}
 
         for thumbnail_size in Permissions.iter_allowed_thumbnail_sizes(self.user):
-            thumbnail_path = self.get_thumbnail_file_path(thumbnail_size, extension=extension)
-            if not thumbnail_path.exists():
-                self.create_thumbnail(original_path, thumbnail_path, thumbnail_size)
-
             thumbnails[f"{thumbnail_size}px"] = ImageRouting.get_thumbnail_url(self.user.username,
                                                                                self.uuid,
                                                                                thumbnail_size)

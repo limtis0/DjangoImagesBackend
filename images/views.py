@@ -29,10 +29,17 @@ def view_image(request):
     if image_route.is_thumbnail():
         size = image_route.context['size']
         if size in Permissions.iter_allowed_thumbnail_sizes(user):
-            return render(request, IMAGE_TEMPLATE, {'image': image.get_thumbnail_file_path(size, with_static=False)})
+            image_path = image.get_thumbnail_file_path(size)
+            return render(request, IMAGE_TEMPLATE, {'image': _relative_to_static(image_path)})
         return HttpResponse('Thumbnail size not allowed', status=403)
 
     if image_route.is_original():
         if Permissions.has_original_image_permission(user):
-            return render(request, IMAGE_TEMPLATE, {'image': image.get_file_path(with_static=False)})
+            image_path = image.get_file_path()
+            return render(request, IMAGE_TEMPLATE, {'image': _relative_to_static(image_path)})
         return HttpResponse('No access', status=403)
+
+
+# Return directory path without first folder (static/)
+def _relative_to_static(path):
+    return path.relative_to(*path.parts[:1])
