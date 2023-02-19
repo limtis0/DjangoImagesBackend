@@ -1,4 +1,3 @@
-import shutil
 from typing import Dict
 from django.core.validators import FileExtensionValidator
 from django.db import models
@@ -7,6 +6,8 @@ from hexOceanBackend.settings import STATIC_URL
 from pathlib import Path
 from users.permissions import Permissions
 from PIL import Image as PILImage
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
 from shutil import rmtree
 
 
@@ -64,5 +65,7 @@ class Image(models.Model):
         thumbnail = image.resize(new_size)
         thumbnail.save(thumbnail_path)
 
-    def delete_files(self):
-        shutil.rmtree(self.get_directory_path())
+
+@receiver(pre_delete, sender=Image)
+def deleting_model(sender, instance, **kwargs):
+    rmtree(instance.get_directory_path())

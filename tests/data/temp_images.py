@@ -18,6 +18,11 @@ class TempImages:
         tmp_file.seek(0)
         return tmp_file
 
+    @staticmethod
+    def cleanup_images() -> None:
+        for image in Image.objects.all():
+            image.delete()
+
     @classmethod
     def populate_images(cls, api_client: APIClient):
         if not User.objects.filter(username=TempUsers.basic['username']):
