@@ -40,6 +40,3 @@ class ImageOutputSerializer(serializers.ModelSerializer):
         data['thumbnails'] = image.get_available_thumbnails()
 
         return data
-
-    def get_image(self):
-        return Image.objects.get(uuid=self.data['uuid'])

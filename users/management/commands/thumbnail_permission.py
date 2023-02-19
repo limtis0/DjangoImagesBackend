@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from users.permissions import create_permission, delete_permission
+from users.permissions import Permissions
 
 
 class Command(BaseCommand):
@@ -18,14 +18,14 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         height = kwargs['height']
 
-        codename = f'can_get_thumbnail_{height}px'
-        name = f'Can get a link to a thumbnail with height of {height}px'
+        codename = Permissions.get_thumbnail_size_permission_codename(height)
+        name = Permissions.get_thumbnail_size_permission_name(height)
 
         if kwargs['delete']:
-            if delete_permission(codename, name):
+            if Permissions.delete_permission(codename):
                 return self.stdout.write(f'Successfully removed permission with codename {codename}')
             return self.stdout.write(f'Permission with codename {codename} could not be found')
 
-        if create_permission(codename, name):
+        if Permissions.create_permission(codename, name):
             return self.stdout.write(f'Created permission with codename "{codename}"')
         return self.stdout.write(f'Permission with codename {codename} already exists')
