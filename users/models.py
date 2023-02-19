@@ -14,3 +14,17 @@ def update_profile_signal(sender, instance, created, **kwargs):
     if created:
         Profile.objects.create(user=instance)
     instance.profile.save()
+
+
+class TestUser:
+    USERNAME = 'test'
+    EMAIL = 'test@test.com'
+    PASSWORD = 'Fw6isiVOSAdCbs1a0XTXokDV'
+
+    @classmethod
+    def create(cls):
+        User.objects.create_user(username=cls.USERNAME, email=cls.EMAIL, password=cls.PASSWORD)
+
+    @classmethod
+    def get(cls) -> User:
+        User.objects.get(username=cls.USERNAME)
