@@ -1,5 +1,5 @@
 from images.models import Image
-from tests.data.temp_images import generate_image, cleanup_images
+from tests.data.temp_images import generate_image
 from tests.data.fixture_users import Users
 
 URL = '/api/upload'

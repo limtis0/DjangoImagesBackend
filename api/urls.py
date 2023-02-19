@@ -1,5 +1,5 @@
 from django.urls import path
-from images import views
+from api import views
 
 urlpatterns = [
     path(r'', views.API_overview, name='API Overview'),
