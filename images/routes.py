@@ -1,5 +1,5 @@
 import re
-from typing import Dict
+from typing import Dict, Optional
 from images.models import Image
 from django.contrib.auth.models import User
 
@@ -47,11 +47,11 @@ class ImageRouting:
             'size': data.group(4),
         }
 
-    def get_user(self) -> User:
-        return User.objects.get(username=self.context['username'])
+    def get_user(self) -> Optional[User]:
+        return User.objects.filter(username=self.context['username']).first()
 
-    def get_image(self) -> Image:
-        return Image.objects.get(uuid=self.context['uuid'])
+    def get_image(self) -> Optional[Image]:
+        return Image.objects.filter(uuid=self.context['uuid']).first()
 
     def get_thumbnail_size(self) -> int:
         return int(self.context['size'])
