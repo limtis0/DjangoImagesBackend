@@ -1,7 +1,10 @@
 import shortuuid
+from typing import Dict, List, Union
 from rest_framework import serializers
 from rest_framework.response import Response
 from images.models import Image
+from django.db.models.query import QuerySet
+from users.permissions import Permissions
 
 
 class ImageInputSerializer(serializers.ModelSerializer):
@@ -19,26 +22,31 @@ class ImageInputSerializer(serializers.ModelSerializer):
 
         image = self.save(
             user=self.context['request'].user,
-            uuid=shortuuid.uuid()
+            uuid=shortuuid.uuid(),
+            private_uuid=shortuuid.uuid(),
         )
 
-        output = ImageOutputSerializer(image, context={ImageOutputSerializer.CONTEXT_IMAGES_KEY: {image.uuid: image}})
-        return Response(output.data, status=200)
+        output = ImageOutputSerializer.to_representation(image, Permissions.has_original_image_permission(image.user))
+        return Response(output, status=200)
 
 
-class ImageOutputSerializer(serializers.ModelSerializer):
-    CONTEXT_IMAGES_KEY = 'images'
+class ImageOutputSerializer:
+    @classmethod
+    def to_representation(cls, data: Union[Image, QuerySet[Image]],
+                          original_permission, many=False) -> Union[Dict, List[Dict]]:
+        if many:
+            return [cls.image_to_output_dict(image, original_permission) for image in data]
+        return cls.image_to_output_dict(data, original_permission)
 
-    class Meta:
-        model = Image
-        fields = ['title', 'uuid']
+    @staticmethod
+    def image_to_output_dict(image: Image, original_permission: bool):
+        data = {
+            'title': image.title,
+            'uuid': image.uuid,
+            'thumbnails': image.get_available_thumbnails()
+        }
 
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-
-        # Performance: avoiding queries by using a dictionary of Images passed via context
-        image = self.context[self.CONTEXT_IMAGES_KEY][data['uuid']]
-
-        data['thumbnails'] = image.get_available_thumbnails()
+        if original_permission:
+            data['original'] = image.get_original_media_url()
 
         return data

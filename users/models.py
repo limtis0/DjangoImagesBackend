@@ -22,9 +22,6 @@ class TestUser:
     PASSWORD = 'Fw6isiVOSAdCbs1a0XTXokDV'
 
     @classmethod
-    def create(cls):
-        User.objects.create_user(username=cls.USERNAME, email=cls.EMAIL, password=cls.PASSWORD)
-
-    @classmethod
     def get(cls) -> User:
-        User.objects.get(username=cls.USERNAME)
+        user, _ = User.objects.get_or_create(username=cls.USERNAME, email=cls.EMAIL, password=cls.PASSWORD)
+        return user

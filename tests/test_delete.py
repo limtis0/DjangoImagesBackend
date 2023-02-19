@@ -13,7 +13,6 @@ class TestDelete:
     @pytest.mark.xfail(condition=DEBUG, reason='Switching unauthorized users to users.TestUser if DEBUG is True')
     def test_unauthorized(self, api_client):
         response = api_client.post(URL, data=None)
-
         assert response.status_code == 401, f'{URL} is not giving 401 for unauthorized users'
 
     def test_delete_valid(self, api_client):

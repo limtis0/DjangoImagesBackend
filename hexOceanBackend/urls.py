@@ -15,9 +15,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from hexOceanBackend.settings import API_URL_BASE, IMAGE_URL_BASE
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('api.urls')),
-    path('image/', include('images.urls')),
+    path(API_URL_BASE, include('api.urls')),
+    path(IMAGE_URL_BASE, include('images.urls')),
 ]

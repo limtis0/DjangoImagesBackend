@@ -18,9 +18,17 @@ class Permissions:
     @classmethod
     def iter_allowed_thumbnail_sizes(cls, user) -> Generator[int, None, None]:
         for permission in user.get_all_permissions():
-            match = cls.THUMBNAIL_PERMISSION_REGEX.search(permission)
-            if match:
-                yield int(match.group(1))
+            search = cls.THUMBNAIL_PERMISSION_REGEX.search(permission)
+            if search:
+                yield int(search.group(1))
+
+    @classmethod
+    def has_original_image_permission(cls, user) -> bool:
+        return any([cls.ORIGINAL_IMAGE_PERMISSION_CODENAME in p for p in user.get_all_permissions()])
+
+    @classmethod
+    def has_expiring_image_permission(cls, user) -> bool:
+        any([cls.EXPIRING_IMAGE_PERMISSION_CODENAME in p for p in user.get_all_permissions()])
 
     @classmethod
     def get_thumbnail_size_permission_codename(cls, size: int) -> str:

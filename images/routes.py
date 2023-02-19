@@ -1,7 +1,6 @@
 import re
-from typing import Dict, Optional
-from images.models import Image
-from django.contrib.auth.models import User
+from typing import Dict
+from hexOceanBackend.settings import IMAGE_URL_BASE
 
 """
 Matches links that look like:
@@ -44,17 +43,8 @@ class ImageRouting:
             'username': data.group(1),
             'uuid': data.group(2),
             'type': data.group(3),
-            'size': data.group(4),
+            'size': int(data.group(4)) if data.group(4).isdecimal() else 0,
         }
-
-    def get_user(self) -> Optional[User]:
-        return User.objects.filter(username=self.context['username']).first()
-
-    def get_image(self) -> Optional[Image]:
-        return Image.objects.filter(uuid=self.context['uuid']).first()
-
-    def get_thumbnail_size(self) -> int:
-        return int(self.context['size'])
 
     def is_original(self) -> bool:
         return self.context['type'] == self._TYPE_ORIGINAL
@@ -64,3 +54,11 @@ class ImageRouting:
 
     def is_expiring(self) -> bool:
         return self.context['type'] == self._TYPE_EXPIRING
+
+    @classmethod
+    def get_thumbnail_url(cls, username: str, uuid: str, thumbnail_size: int) -> str:
+        return f'{IMAGE_URL_BASE}{username}/{uuid}/{cls._TYPE_THUMBNAIL}/{thumbnail_size}'
+
+    @classmethod
+    def get_original_media_url(cls, username: str, uuid: str) -> str:
+        return f'{IMAGE_URL_BASE}{username}/{uuid}/{cls._TYPE_ORIGINAL}'

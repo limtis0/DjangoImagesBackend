@@ -46,11 +46,6 @@ def create_basic_plans(sender, **kwargs):
     ])
 
 
-def create_test_user(sender, **kwargs):
-    from users.models import TestUser
-    TestUser.create()
-
-
 class UsersConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'users'
@@ -58,4 +53,3 @@ class UsersConfig(AppConfig):
     def ready(self):
         post_migrate.connect(create_basic_permissions, sender=self)
         post_migrate.connect(create_basic_plans, sender=self)
-        post_migrate.connect(create_test_user, sender=self)
