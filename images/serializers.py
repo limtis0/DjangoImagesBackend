@@ -7,7 +7,7 @@ from images.models import Image
 class ImageInputSerializer(serializers.ModelSerializer):
     class Meta:
         model = Image
-        fields = ['title', 'image', 'user', 'uuid']
+        fields = ['title', 'user', 'uuid', 'image']
         extra_kwargs = {
             'user': {'read_only': True},
             'uuid': {'read_only': True},
@@ -15,16 +15,31 @@ class ImageInputSerializer(serializers.ModelSerializer):
 
     def upload(self):
         if not self.is_valid(raise_exception=True):
-            return Response('Provided image can not be uploaded. Supported formats: (jpg, png)', status=401)
+            return Response('Provided image can not be uploaded. Supported formats: (jpg, png)', status=400)
 
-        self.save(
+        image = self.save(
             user=self.context['request'].user,
             uuid=shortuuid.uuid()
         )
 
-        return Response('OK', status=200)
+        output = ImageOutputSerializer(image, context={'images': {f'{image.uuid}': image}})
+        return Response(output.data, status=200)
 
 
 class ImageOutputSerializer(serializers.ModelSerializer):
     class Meta:
         model = Image
+        fields = ['title', 'uuid']
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+
+        # Performance: avoiding queries with a dictionary of Images passed via context
+        image = self.context['images'][data['uuid']]
+
+        data['thumbnails'] = image.get_available_thumbnails()
+
+        return data
+
+    def get_image(self):
+        return Image.objects.get(uuid=self.data['uuid'])

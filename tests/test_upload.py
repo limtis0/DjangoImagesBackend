@@ -1,5 +1,5 @@
 from images.models import Image
-from tests.data.temp_images import generate_image
+from tests.data.temp_images import generate_image, cleanup_images
 from tests.data.fixture_users import Users
 
 URL = '/api/upload'
@@ -19,5 +19,6 @@ class TestUpload:
         count_before = Image.objects.count()
         response = api_client.post(URL, {'title': 'title', 'image': image}, format='multipart')
 
-        assert response.status_code == 200
+        assert response.status_code == 200, f'{URL} has not processed valid data correctly'
         assert Image.objects.count() - count_before == 1, f'{URL} is not creating a new Image object'
+        assert len(response.data['thumbnails']) == 1, f'{URL} is not creating thumbnails on response'
