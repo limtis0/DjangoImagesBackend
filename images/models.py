@@ -4,7 +4,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from hexOceanBackend.settings import STATIC_URL
 from pathlib import Path
-from users.permissions import user_iterate_allowed_thumbnail_sizes
+from users.permissions import Permissions
 from PIL import Image as PILImage
 
 
@@ -41,13 +41,13 @@ class Image(models.Model):
         original_path = self.get_file_path(extension)
         thumbnails = {}
 
-        for thumbnail_size in user_iterate_allowed_thumbnail_sizes(self.user):
+        for thumbnail_size in Permissions.iter_allowed_thumbnail_sizes(self.user):
             thumbnail_path = self.get_thumbnail_file_path(thumbnail_size, extension)
             if not thumbnail_path.exists():
                 self.create_thumbnail(original_path, thumbnail_path, thumbnail_size)
 
             # TODO: Make a link to static file
-            thumbnails[str(thumbnail_size)] = f'thumbnail_path{thumbnail_size}.link'
+            thumbnails[f"{thumbnail_size}px"] = f'thumbnail_path{thumbnail_size}.link'
 
         return thumbnails
 

@@ -58,7 +58,7 @@ ROOT_URLCONF = 'hexOceanBackend.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [Path(BASE_DIR, 'images', 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
