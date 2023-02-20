@@ -62,3 +62,7 @@ class ImageRouting:
     @classmethod
     def get_original_media_url(cls, username: str, uuid: str) -> str:
         return f'{IMAGE_URL_BASE}{username}/{uuid}/{cls._TYPE_ORIGINAL}'
+
+    @classmethod
+    def get_expiring_media_url(cls, username: str, expiring_uuid: str):
+        return f'{IMAGE_URL_BASE}{username}/{expiring_uuid}/{cls._TYPE_EXPIRING}'

@@ -1,10 +1,13 @@
 # Typing
+import datetime
 from typing import Dict
 
 # Models
+import shortuuid
 from django.db import models
-from django.core.validators import FileExtensionValidator
+from django.core.validators import FileExtensionValidator, MinValueValidator, MaxValueValidator
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 # Routes & Permissions
 from images.routes import ImageRouting
@@ -21,7 +24,7 @@ from django.dispatch import receiver
 from shutil import rmtree
 
 
-def upload_to(self, _):
+def image_upload_to(self, _):
     return self.get_file_path()
 
 
@@ -29,11 +32,14 @@ class Image(models.Model):
     class Meta:
         ordering = ['-title', '-uuid']
 
-    uuid = models.CharField(max_length=22, primary_key=True)
-    private_uuid = models.CharField(max_length=22, unique=True)  # Used to prevent access to original image
+    uuid = models.CharField(max_length=22, default=shortuuid.uuid, primary_key=True)
+    private_uuid = models.CharField(max_length=22,  # Used for access to original image
+                                    default=shortuuid.uuid,
+                                    unique=True,
+                                    editable=False)
     title = models.CharField(max_length=128)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    image = models.ImageField(upload_to=upload_to,
+    image = models.ImageField(upload_to=image_upload_to,
                               validators=[FileExtensionValidator(allowed_extensions=['png', 'jpg'])])
 
     def get_file_extension(self) -> str:
@@ -62,8 +68,6 @@ class Image(models.Model):
         return thumbnail_path
 
     def get_available_thumbnails(self) -> Dict[str, str]:
-        extension = self.get_file_extension()
-
         thumbnails = {}
 
         for thumbnail_size in Permissions.iter_allowed_thumbnail_sizes(self.user):
@@ -90,3 +94,29 @@ class Image(models.Model):
 @receiver(pre_delete, sender=Image)
 def delete_images(sender, instance, **kwargs):
     rmtree(instance.get_directory_path())
+
+
+class ExpiringLink(models.Model):
+    MIN_DURATION = 300
+    MAX_DURATION = 30_000
+
+    image = models.OneToOneField(Image, on_delete=models.CASCADE, primary_key=True)
+    duration = models.IntegerField(validators=[
+        MinValueValidator(MIN_DURATION),
+        MaxValueValidator(MAX_DURATION)
+    ])
+    valid_until = models.DateTimeField(blank=True)
+    uuid = models.CharField(max_length=22, default=shortuuid.uuid)
+
+    def _valid_until_default_value(self) -> datetime:
+        return timezone.now() + timezone.timedelta(seconds=self.duration)
+
+    def save(self, *args, **kwargs):
+        self.valid_until = self._valid_until_default_value()
+        super().save(*args, **kwargs)
+
+    def is_valid(self) -> bool:
+        return timezone.now() <= self.valid_until
+
+    def get_expiring_media_url(self):
+        return ImageRouting.get_expiring_media_url(username=self.image.user.username, expiring_uuid=self.uuid)
