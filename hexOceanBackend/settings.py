@@ -38,9 +38,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'django_cron',
     'users',
     'api',
-    'images'
+    'images',
 ]
 
 MIDDLEWARE = [
@@ -132,3 +133,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # URL Bases
 API_URL_BASE = 'api/'
 IMAGE_URL_BASE = 'image/'
+
+CRON_CLASSES = [
+    "images.cron.DeleteExpiredImages",
+]

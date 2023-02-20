@@ -25,7 +25,7 @@ from shutil import rmtree
 
 
 def image_upload_to(self, _):
-    return self.get_file_path()
+    return self.get_original_file_path()
 
 
 class Image(models.Model):
@@ -48,26 +48,25 @@ class Image(models.Model):
     def get_directory_path(self) -> Path:
         return Path(STATIC_URL, self.user.username, self.uuid)
 
-    def get_file_path(self, extension=None) -> Path:
-        # Performance: str.split() may be called multiple times
+    def get_original_file_path(self, extension=None) -> Path:
+        # Performance: str.split() could be called multiple times
         if extension is None:
             extension = self.get_file_extension()
         return self.get_directory_path().joinpath(Path(f'{self.private_uuid}.{extension}'))
 
-    def get_thumbnail_file_path(self, thumbnail_size: int, extension=None) -> Path:
-        # Performance: str.split() may be called multiple times
-        if extension is None:
-            extension = self.get_file_extension()
+    def get_thumbnail_file_path(self, thumbnail_size: int) -> Path:
+        extension = self.get_file_extension()
 
-        thumbnail_path = self.get_directory_path().joinpath(Path(f'thumbnail_{thumbnail_size}.{extension}'))
+        thumbnail_filename = Path(f'thumbnail_{thumbnail_size}.{extension}')
+        thumbnail_path = self.get_directory_path().joinpath(thumbnail_filename)
 
         if not thumbnail_path.exists():
-            original_path = self.get_file_path(extension=extension)
+            original_path = self.get_original_file_path(extension=extension)
             self.create_thumbnail(original_path, thumbnail_path, thumbnail_size)
 
         return thumbnail_path
 
-    def get_available_thumbnails(self) -> Dict[str, str]:
+    def get_available_thumbnail_urls(self) -> Dict[str, str]:
         thumbnails = {}
 
         for thumbnail_size in Permissions.iter_allowed_thumbnail_sizes(self.user):

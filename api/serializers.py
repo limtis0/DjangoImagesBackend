@@ -12,7 +12,7 @@ class ImageSerializer(serializers.ModelSerializer):
         data = {
             'title': instance.title,
             'uuid': instance.uuid,
-            'thumbnails': instance.get_available_thumbnails()
+            'thumbnails': instance.get_available_thumbnail_urls()
         }
         if self.context['original_permission']:
             data['original'] = instance.get_original_media_url()

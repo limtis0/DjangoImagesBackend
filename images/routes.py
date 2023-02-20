@@ -2,25 +2,26 @@ import re
 from typing import Dict
 from hexOceanBackend.settings import IMAGE_URL_BASE
 
-"""
-Matches links that look like:
-{STATIC_URL}/userName123@.-+/iAmAShortUuid23456789A/original/
-{STATIC_URL}/userName123@.-+/iAmAShortUuid23456789A/thumbnail/300
-{STATIC_URL}/userName123@.-+/iAmAShortUuid23456789A/expiring
-
-Captures: 
-Username to a group(1);
-uuid to a group(2);
-Image type to a group(3);
-Additional numeric value (thumbnail size in pixels) to a group(4);
-"""
-
 
 class ImageRouting:
     _TYPE_ORIGINAL = 'original'
     _TYPE_THUMBNAIL = 'thumbnail'
     _TYPE_EXPIRING = 'expiring'
 
+    """
+    :var static_image_url_regex
+    
+    Matches URLs that look like:
+    {STATIC_URL}/userName123@.-+/iAmAShortUuid23456789A/original/
+    {STATIC_URL}/userName123@.-+/iAmAShortUuid23456789A/thumbnail/300
+    {STATIC_URL}/userName123@.-+/iAmAShortUuid23456789A/expiring
+
+    Captures: 
+    username - group(1);
+    uuid to a group(2);
+    image type (original/thumbnail/expiring) - group(3);
+    Thumbnail size in pixels (optional) - group(4);
+    """
     _username_regex = r'[a-zA-Z0-9_@+.-]{1,150}'
     _uuid_regex = r'[2-9A-HJ-NP-Za-km-z]{22}'
     _image_type_regex = '|'.join([_TYPE_ORIGINAL, _TYPE_THUMBNAIL, _TYPE_EXPIRING])

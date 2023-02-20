@@ -22,7 +22,7 @@ class TestDelete:
         user = User.objects.get(username=TempUsers.basic['username'])
         image = Image.objects.filter(user=user).first()
 
-        file_path = image.get_file_path()
+        file_path = image.get_original_file_path()
 
         api_client.login(username=TempUsers.basic['username'], password=TempUsers.basic['password'])
         response = api_client.delete(f'{URL}/{image.uuid}', None)
