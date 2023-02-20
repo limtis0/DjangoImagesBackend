@@ -14,7 +14,7 @@ class TestExpiring:
     @pytest.mark.xfail(condition=DEBUG, reason='Switching unauthorized users to users.TestUser if DEBUG is True')
     def test_unauthorized(self, api_client):
         response = api_client.post(URL, data=None)
-        assert response.status_code == 401, f'{URL} should give 401 for unauthorized users'
+        assert response.status_code == 401, f'{URL} should return 401 to unauthorized users'
 
     def test_create_valid(self, api_client):
         TempUsers.populate_users()
@@ -74,7 +74,7 @@ class TestExpiring:
         api_client.login(username=TempUsers.enterprise['username'], password=TempUsers.enterprise['password'])
         response = api_client.get(URL.format('INVALID_UUID', duration))
 
-        assert response.status_code == 404, f'{URL} should give 404 if image UUID is invalid'
+        assert response.status_code == 404, f'{URL} should return 404 if image UUID is invalid'
 
     def test_duration_clamp(self, api_client):
         TempUsers.populate_users()
@@ -90,7 +90,7 @@ class TestExpiring:
         api_client.login(username=TempUsers.enterprise['username'], password=TempUsers.enterprise['password'])
         small_duration_response = api_client.get(URL.format(image.uuid, small_duration))
 
-        assert small_duration_response.status_code == 200, f'{URL} should give 200 even with duration < MIN'
+        assert small_duration_response.status_code == 200, f'{URL} should return 200 even with duration < MIN'
         assert small_duration_response.data['duration'] == MIN_DURATION, f'{URL} should clamp duration'
 
         big_duration = 999_999
@@ -110,4 +110,4 @@ class TestExpiring:
         api_client.login(username=TempUsers.basic['username'], password=TempUsers.basic['password'])
         response = api_client.get(URL.format(image.uuid, duration))
 
-        assert response.status_code == 403, f'{URL} should return status code 403 for user with invalid permissions'
+        assert response.status_code == 403, f'{URL} should return 403 for user with invalid permissions'

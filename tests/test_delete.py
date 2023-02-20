@@ -13,7 +13,7 @@ class TestDelete:
     @pytest.mark.xfail(condition=DEBUG, reason='Switching unauthorized users to users.TestUser if DEBUG is True')
     def test_unauthorized(self, api_client):
         response = api_client.post(URL, data=None)
-        assert response.status_code == 401, f'{URL} is not giving 401 for unauthorized users'
+        assert response.status_code == 401, f'{URL} should return 401 to unauthorized users'
 
     def test_delete_valid(self, api_client):
         TempUsers.populate_users()
@@ -27,8 +27,8 @@ class TestDelete:
         api_client.login(username=TempUsers.basic['username'], password=TempUsers.basic['password'])
         response = api_client.delete(f'{URL}/{image.uuid}', None)
 
-        assert response.status_code == 200, f'{URL} has not deleted an image on valid request'
-        assert not file_path.exists(), f'{URL} is not deleting the files on valid request'
+        assert response.status_code == 200, f'{URL} should delete an Image from DB on valid request'
+        assert not file_path.exists(), f'{URL} should delete the Image files on valid request'
 
     def test_delete_invalid_user(self, api_client):
         TempUsers.populate_users()
@@ -40,7 +40,7 @@ class TestDelete:
         api_client.login(username=TempUsers.basic['username'], password=TempUsers.basic['password'])
         response = api_client.delete(f'{URL}/{image.uuid}', None)
 
-        assert response.status_code == 404, f'{URL} is not returning 404 on invalid user'
+        assert response.status_code == 404, f'{URL} should return 404 on invalid user'
 
     def test_delete_invalid_image(self, api_client):
         TempUsers.populate_users()
@@ -49,4 +49,4 @@ class TestDelete:
         api_client.login(username=TempUsers.basic['username'], password=TempUsers.basic['password'])
         response = api_client.delete(f'{URL}/{shortuuid.uuid()}', None)
 
-        assert response.status_code == 404, f'{URL} is not returning 404 on non-existent image'
+        assert response.status_code == 404, f'{URL} should return 404 on non-existent image'
