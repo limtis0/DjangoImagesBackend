@@ -35,7 +35,7 @@ class TestExpiring:
         approx_valid_until = timezone.now() + timezone.timedelta(seconds=duration)
         epsilon = timezone.timedelta(seconds=10)
 
-        assert abs((valid_until - approx_valid_until)) < epsilon, \
+        assert abs(valid_until - approx_valid_until) < epsilon, \
             f'{URL} response data should contain correct "valid_until" field'
 
         assert response.data.get('url') is not None, f'{URL} response data should contain "url"'
@@ -58,6 +58,12 @@ class TestExpiring:
             f'{URL} should change "duration" to desired on update'
 
         assert old_response.data['url'] != new_response.data['url'], f'{URL} should change "url" on update'
+
+        valid_until = new_response.data['valid_until']
+        approx_valid_until = timezone.now() + timezone.timedelta(seconds=new_duration)
+        epsilon = timezone.timedelta(seconds=10)
+        assert abs(valid_until - approx_valid_until) < epsilon, \
+            f'{URL} response data on update should contain correct "valid_until" field'
 
     def test_no_image(self, api_client):
         TempUsers.populate_users()

@@ -40,7 +40,7 @@ class TestDelete:
         api_client.login(username=TempUsers.basic['username'], password=TempUsers.basic['password'])
         response = api_client.delete(f'{URL}/{image.uuid}', None)
 
-        assert response.status_code == 403, f'{URL} is not returning 403 on invalid user'
+        assert response.status_code == 404, f'{URL} is not returning 404 on invalid user'
 
     def test_delete_invalid_image(self, api_client):
         TempUsers.populate_users()
