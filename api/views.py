@@ -1,12 +1,12 @@
+from typing import Dict, List
 from django.core.paginator import Paginator
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from api.serializers import ImageInputSerializer, ImageOutputSerializer, ExpiringLinkSerializer
+from api.serializers import ImageSerializer, ExpiringLinkSerializer
 from hexOceanBackend.settings import DEBUG, API_URL_BASE
 from users.models import TestUser
 from images.models import Image, ExpiringLink
 from users.permissions import Permissions
-from django.db.models.query import QuerySet
 
 START_PAGE = 1
 PAGE_SIZE = 30
@@ -31,8 +31,16 @@ def upload_image(request):
             return Response('Not authenticated', status=401)
         request.user = TestUser.get()
 
-    serializer = ImageInputSerializer(data=request.data, context={'request': request})
-    return serializer.upload()
+    original_permission = Permissions.has_original_image_permission(request.user)
+    serializer = ImageSerializer(data=request.data,
+                                 context={'request': request, 'original_permission': original_permission})
+
+    if not serializer.is_valid():
+        return Response('Provided image can not be uploaded. Supported formats: (jpg, png)', status=400)
+
+    serializer.save()
+
+    return Response(serializer.data, status=200)
 
 
 @api_view(['DELETE'])
@@ -71,7 +79,7 @@ def list_images(request, page: int):
                 'current': current_page.number,
                 'next': (current_page.number + 1) if (current_page.has_next()) else None,
             },
-        'data': _get_serialized_output(request, current_page.object_list)
+        'data': _get_serialized_images(current_page.object_list, request)
     }
 
     return Response(data, status=200)
@@ -84,8 +92,8 @@ def find_images(request, title: str):
             return Response('Not authenticated', status=401)
         request.user = TestUser.get()
 
-    filtered = Image.objects.filter(user=request.user, title__contains=title)
-    return Response(_get_serialized_output(request, filtered))
+    filtered = Image.objects.filter(user=request.user, title__contains=title)[:PAGE_SIZE]
+    return Response(_get_serialized_images(filtered, request))
 
 
 @api_view(['GET'])
@@ -119,9 +127,13 @@ def get_expiring_link(request, uuid: str, duration: int):
     return Response(serializer.data, status=200)
 
 
-def _get_serialized_output(request, images: QuerySet[Image]):
-    # Performance: avoiding multiple permission lookups
-    original_image_permission = Permissions.has_original_image_permission(request.user)
-    return ImageOutputSerializer.to_representation(images,
-                                                   original_image_permission,
-                                                   many=True)
+def _get_serialized_images(images, request) -> List[Dict]:
+    original_permission = Permissions.has_original_image_permission(request.user)
+    serialized_images = []
+
+    for image in images:
+        serializer = ImageSerializer(image,
+                                     context={'original_permission': original_permission})
+        serialized_images.append(serializer.data)
+
+    return serialized_images
