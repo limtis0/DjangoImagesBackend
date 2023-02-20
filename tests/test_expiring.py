@@ -1,19 +1,20 @@
 import pytest
 from django.contrib.auth.models import User
 from django.utils import timezone
-
 from images.models import Image
 from hexOceanBackend.settings import DEBUG
 from tests.data.temp_users import TempUsers
 from tests.data.temp_images import TempImages
+from django.urls import reverse
+from api.views import get_expiring_link
 
-URL = '/api/expiring/{0}/{1}'
+URL = '/api/expiring/'
 
 
 class TestExpiring:
     @pytest.mark.xfail(condition=DEBUG, reason='Switching unauthorized users to users.TestUser if DEBUG is True')
     def test_unauthorized(self, api_client):
-        response = api_client.post(URL, data=None)
+        response = api_client.get(URL, data=None)
         assert response.status_code == 401, f'{URL} should return 401 to unauthorized users'
 
     def test_create_valid(self, api_client):
@@ -25,7 +26,7 @@ class TestExpiring:
         duration = 500
 
         api_client.login(username=TempUsers.enterprise['username'], password=TempUsers.enterprise['password'])
-        response = api_client.get(URL.format(image.uuid, duration))
+        response = api_client.get(reverse(get_expiring_link, args=[image.uuid, duration]))
 
         assert response.status_code == 200, f'{URL} should return status code 200 on valid request'
         assert response.data['title'] == image.title, f'{URL} response data should contain "title" of the original Image'
@@ -51,8 +52,8 @@ class TestExpiring:
         new_duration = 1000
 
         api_client.login(username=TempUsers.enterprise['username'], password=TempUsers.enterprise['password'])
-        old_response = api_client.get(URL.format(image.uuid, old_duration))
-        new_response = api_client.get(URL.format(image.uuid, new_duration))
+        old_response = api_client.get(reverse(get_expiring_link, args=[image.uuid, old_duration]))
+        new_response = api_client.get(reverse(get_expiring_link, args=[image.uuid, new_duration]))
 
         assert old_response.data['duration'] == old_duration and new_response.data['duration'] == new_duration, \
             f'{URL} should change "duration" to desired on update'
@@ -72,7 +73,7 @@ class TestExpiring:
         duration = 500
 
         api_client.login(username=TempUsers.enterprise['username'], password=TempUsers.enterprise['password'])
-        response = api_client.get(URL.format('INVALID_UUID', duration))
+        response = api_client.get(reverse(get_expiring_link, args=['INVALID_UUID', duration]))
 
         assert response.status_code == 404, f'{URL} should return 404 if image UUID is invalid'
 
@@ -88,13 +89,13 @@ class TestExpiring:
 
         small_duration = 1
         api_client.login(username=TempUsers.enterprise['username'], password=TempUsers.enterprise['password'])
-        small_duration_response = api_client.get(URL.format(image.uuid, small_duration))
+        small_duration_response = api_client.get(reverse(get_expiring_link, args=[image.uuid, small_duration]))
 
         assert small_duration_response.status_code == 200, f'{URL} should return 200 even with duration < MIN'
         assert small_duration_response.data['duration'] == MIN_DURATION, f'{URL} should clamp duration'
 
         big_duration = 999_999
-        big_duration_response = api_client.get(URL.format(image.uuid, big_duration))
+        big_duration_response = api_client.get(reverse(get_expiring_link, args=[image.uuid, big_duration]))
 
         assert big_duration_response.status_code == 200, f'{URL} should give 200 even with duration > MAX'
         assert big_duration_response.data['duration'] == MAX_DURATION, f'{URL} should clamp duration'
@@ -108,6 +109,6 @@ class TestExpiring:
         duration = 500
 
         api_client.login(username=TempUsers.basic['username'], password=TempUsers.basic['password'])
-        response = api_client.get(URL.format(image.uuid, duration))
+        response = api_client.get(reverse(get_expiring_link, args=[image.uuid, duration]))
 
         assert response.status_code == 403, f'{URL} should return 403 for user with invalid permissions'

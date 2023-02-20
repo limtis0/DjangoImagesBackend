@@ -4,14 +4,16 @@ from tests.data.temp_images import TempImages
 from tests.data.temp_users import TempUsers
 from hexOceanBackend.settings import DEBUG
 from django.contrib.auth.models import User
+from django.urls import reverse
+from api.views import upload_image
 
-URL = '/api/upload'
+URL = '/api/upload/'
 
 
 class TestUpload:
     @pytest.mark.xfail(condition=DEBUG, reason='Switching unauthorized users to users.TestUser if DEBUG is True')
     def test_unauthorized(self, api_client):
-        response = api_client.post(URL, data=None)
+        response = api_client.post(reverse(upload_image), data=None)
         assert response.status_code == 401, f'{URL} should return 401 to unauthorized users'
 
     def test_upload_valid(self, api_client):
@@ -20,7 +22,7 @@ class TestUpload:
         api_client.login(username=TempUsers.basic['username'], password=TempUsers.basic['password'])
         image = TempImages.generate_image('.jpg', (100, 100))
 
-        response = api_client.post(URL, {'title': 'title', 'image': image}, format='multipart')
+        response = api_client.post(reverse(upload_image), {'title': 'title', 'image': image}, format='multipart')
         user = User.objects.get(username=TempUsers.basic['username'])
 
         assert response.status_code == 200, f'{URL} has not processed valid data correctly'
@@ -33,7 +35,7 @@ class TestUpload:
         api_client.login(username=TempUsers.basic['username'], password=TempUsers.basic['password'])
         image = TempImages.generate_image('.bmp', (100, 100))
 
-        response = api_client.post(URL, {'title': 'title', 'image': image}, format='multipart')
+        response = api_client.post(reverse(upload_image), {'title': 'title', 'image': image}, format='multipart')
         user = User.objects.get(username=TempUsers.basic['username'])
 
         assert response.status_code == 400, f'{URL} should reject invalid extensions'
