@@ -17,7 +17,7 @@ def update_profile_signal(sender, instance, created, **kwargs):
 
 
 class TestUser:
-    USERNAME = 'test'
+    USERNAME = 'testUser'
     EMAIL = 'test@test.com'
     PASSWORD = 'Fw6isiVOSAdCbs1a0XTXokDV'
 
