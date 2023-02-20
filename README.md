@@ -19,6 +19,11 @@ Superuser credentials: `admin : DbUZ1Qe86qWcxWHJNsilmB`
 The app will be accessible through `127.0.0.1:8000` on the local machine
 
 
+## TestUser
+While `DEBUG=True`, any non-authorized request will be considered as made by TestUser, for the ease of testing.
+
+TestUser is created on the first non-authorized request.
+
 ## CLI
 `python manage.py thumbnail_permission [--delete] [SIZE]` - Create/delete a permission for thumbnail size
 
