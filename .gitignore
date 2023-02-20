@@ -17,3 +17,6 @@ venv.bak/
 
 # .idea
 .idea/
+
+# Static files
+static/
