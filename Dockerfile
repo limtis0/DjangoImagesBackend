@@ -11,7 +11,7 @@ ENV DJANGO_SUPERUSER_USERNAME="admin"
 ENV DJANGO_SUPERUSER_EMAIL="admin@email.com"
 ENV DJANGO_SUPERUSER_PASSWORD="DbUZ1Qe86qWcxWHJNsilmB"
 
-RUN mkdir static
+RUN mkdir -p static
 RUN python3 manage.py migrate
 RUN python3 manage.py createsuperuser --noinput
 
