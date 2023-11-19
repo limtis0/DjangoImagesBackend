@@ -1,4 +1,6 @@
-# hexOceanBackend
+# Django Images Backend
+
+This is an improved version of [Django Photos project of mine](https://github.com/limtis0/DjangoImagesBackend)
 
 ## Docker compose
 - Clone the repository
